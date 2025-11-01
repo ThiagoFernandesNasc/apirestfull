@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoGecko API - Sistema de Criptomoedas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+        }
+        .card p {
+            margin: 0 0 20px 0;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+            transform: scale(1.05);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #0984e3, #74b9ff);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #00b894, #00a085);
+        }
+        .btn-success:hover {
+            background: linear-gradient(45deg, #00a085, #00b894);
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00b894;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CryptoGecko API</h1>
+            <p>Sistema completo para gerenciamento de criptomoedas em tempo real</p>
+            <div class="status">
+                <span class="status-indicator"></span>
+                <strong>Sistema Online</strong> - API funcionando corretamente
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📊 Dados em Tempo Real</h3>
+                <p>Acompanhe as criptomoedas com atualizações automáticas a cada 30 segundos via WebSocket</p>
+                <a href="/realtime-test.html" class="btn">Acessar Tempo Real</a>
+            </div>
+
+            <div class="card">
+                <h3>📚 Documentação da API</h3>
+                <p>Explore todos os endpoints disponíveis com interface interativa do Swagger</p>
+                <a href="/swagger-ui.html" class="btn btn-secondary">Swagger UI</a>
+            </div>
+
+            <div class="card">
+                <h3>🗄️ Banco de Dados</h3>
+                <p>Acesse o console H2 para visualizar e gerenciar os dados do banco</p>
+                <a href="/h2-console" class="btn btn-success" target="_blank">H2 Console</a>
+            </div>
+
+            <div class="card">
+                <h3>🔧 Endpoints da API</h3>
+                <p>Principais endpoints para integração:</p>
+                <ul style="text-align: left; list-style: none; padding: 0;">
+                    <li>• <code>GET /api/crypto</code> - Listar criptomoedas</li>
+                    <li>• <code>POST /api/realtime/start</code> - Iniciar atualizações</li>
+                    <li>• <code>GET /api/realtime/status</code> - Status do sistema</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>⚡ Testes Rápidos</h3>
+                <p>Teste a conectividade e funcionalidades do sistema</p>
+                <button onclick="testApi()" class="btn">Testar API CoinGecko</button>
+                <button onclick="testWebSocket()" class="btn btn-secondary">Testar WebSocket</button>
+            </div>
+
+            <div class="card">
+                <h3>📈 Funcionalidades</h3>
+                <p>• Atualizações em tempo real<br>
+                • WebSocket para dados dinâmicos<br>
+                • API REST completa<br>
+                • Banco H2 integrado<br>
+                • Documentação automática</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>CryptoGecko API v1.0.0 | Desenvolvido com Spring Boot</p>
+        </div>
+    </div>
+
+    <script>
+        function testApi() {
+            fetch('/api/realtime/test-api')
+                .then(response => response.json())
+                .then(data => {
+                    alert('Teste da API: ' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    alert('Erro ao testar API: ' + error);
+                });
+        }
+
+        function testWebSocket() {
+            fetch('/api/realtime/test-websocket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Teste WebSocket: ' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                alert('Erro ao testar WebSocket: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>

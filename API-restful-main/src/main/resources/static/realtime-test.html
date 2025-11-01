@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoGecko - Dados em Tempo Real</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .crypto-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .crypto-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .crypto-symbol {
+            color: #666;
+            font-size: 14px;
+        }
+        .crypto-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        .crypto-change {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .crypto-change.positive {
+            color: #28a745;
+        }
+        .crypto-change.negative {
+            color: #dc3545;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CryptoGecko - Real Time</h1>
+        
+        <div id="status" class="status disconnected">
+            Desconectado
+        </div>
+        
+        <div class="controls">
+            <button onclick="connect()">Conectar WebSocket</button>
+            <button onclick="disconnect()">Desconectar</button>
+            <button onclick="startUpdates()">Iniciar Atualizações</button>
+            <button onclick="stopUpdates()">Parar Atualizações</button>
+            <button onclick="sendTestData()">Enviar Dados de Teste</button>
+            <button onclick="testWebSocket()">Testar WebSocket</button>
+            <button onclick="checkStatus()">Verificar Status</button>
+            <button onclick="testApi()">Testar API CoinGecko</button>
+        </div>
+        
+        <div id="crypto-data">
+            <h3>Dados das Criptomoedas</h3>
+            <div id="crypto-list">
+                Carregando...
+            </div>
+        </div>
+        
+        <div class="log">
+            <h4>Log de Eventos:</h4>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let connected = false;
+        
+        function connect() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function (frame) {
+                connected = true;
+                updateStatus('Conectado', 'connected');
+                addLog('Conectado ao WebSocket: ' + frame);
+                
+                // Subscrever às atualizações
+                stompClient.subscribe('/topic/crypto-updates', function (message) {
+                    const data = JSON.parse(message.body);
+                    addLog('Mensagem recebida: ' + JSON.stringify(data, null, 2));
+                    
+                    if (data.type === 'crypto_update') {
+                        updateCryptoDisplay(data.data);
+                    }
+                });
+                
+            }, function (error) {
+                connected = false;
+                updateStatus('Erro na conexão', 'disconnected');
+                addLog('Erro na conexão: ' + error);
+            });
+        }
+        
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            connected = false;
+            updateStatus('Desconectado', 'disconnected');
+            addLog('Desconectado do WebSocket');
+        }
+        
+        function updateStatus(message, className) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + className;
+        }
+        
+        function addLog(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += '<div>[' + timestamp + '] ' + message + '</div>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateCryptoDisplay(crypto) {
+            const cryptoList = document.getElementById('crypto-list');
+            let cryptoDiv = document.getElementById('crypto-' + crypto.symbol);
+            
+            if (!cryptoDiv) {
+                cryptoDiv = document.createElement('div');
+                cryptoDiv.id = 'crypto-' + crypto.symbol;
+                cryptoDiv.className = 'crypto-card';
+                cryptoList.appendChild(cryptoDiv);
+            }
+            
+            const changeClass = crypto.change24h >= 0 ? 'positive' : 'negative';
+            const changeSymbol = crypto.change24h >= 0 ? '+' : '';
+            
+            cryptoDiv.innerHTML = `
+                <div class="crypto-name">${crypto.name}</div>
+                <div class="crypto-symbol">${crypto.symbol}</div>
+                <div class="crypto-price">$${crypto.currentPrice.toFixed(2)}</div>
+                <div class="crypto-change ${changeClass}">
+                    ${changeSymbol}${crypto.change24h.toFixed(2)}%
+                </div>
+                <div>Market Cap: $${crypto.marketCap.toLocaleString()}</div>
+                <div>Volume 24h: $${crypto.volume24h.toLocaleString()}</div>
+            `;
+        }
+        
+        function startUpdates() {
+            fetch('/api/realtime/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addLog('Iniciar atualizações: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                addLog('Erro ao iniciar atualizações: ' + error);
+            });
+        }
+        
+        function stopUpdates() {
+            fetch('/api/realtime/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addLog('Parar atualizações: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                addLog('Erro ao parar atualizações: ' + error);
+            });
+        }
+        
+        function sendTestData() {
+            fetch('/api/realtime/send-test-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addLog('Dados de teste enviados: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                addLog('Erro ao enviar dados de teste: ' + error);
+            });
+        }
+        
+        function checkStatus() {
+            fetch('/api/realtime/status')
+            .then(response => response.json())
+            .then(data => {
+                addLog('Status: ' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                addLog('Erro ao verificar status: ' + error);
+            });
+        }
+        
+        function testWebSocket() {
+            fetch('/api/realtime/test-websocket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addLog('Teste WebSocket: ' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                addLog('Erro ao testar WebSocket: ' + error);
+            });
+        }
+        
+        function testApi() {
+            fetch('/api/realtime/test-api')
+            .then(response => response.json())
+            .then(data => {
+                addLog('Teste API CoinGecko: ' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                addLog('Erro ao testar API: ' + error);
+            });
+        }
+        
+        // Conectar automaticamente ao carregar a página
+        window.onload = function() {
+            addLog('Página carregada. Clique em "Conectar WebSocket" para começar.');
+        };
+    </script>
+</body>
+</html>
