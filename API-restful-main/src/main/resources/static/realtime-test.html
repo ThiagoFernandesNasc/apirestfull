@@ -100,6 +100,105 @@
             font-family: monospace;
             font-size: 12px;
         }
+        .api-results {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .api-results-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .api-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .api-crypto-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+        .api-crypto-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .api-crypto-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .api-crypto-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .api-crypto-symbol {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .api-crypto-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        .api-crypto-change {
+            font-size: 1em;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 8px 0;
+        }
+        .api-crypto-change.positive {
+            background: rgba(40, 167, 69, 0.3);
+            color: #28a745;
+        }
+        .api-crypto-change.negative {
+            background: rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+        }
+        .api-crypto-details {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.85em;
+        }
+        .api-crypto-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            opacity: 0.95;
+        }
+        .api-status-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .api-status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -126,6 +225,14 @@
             <div id="crypto-list">
                 Carregando...
             </div>
+        </div>
+        
+        <div id="api-results" class="api-results" style="display: none;">
+            <div class="api-results-header">
+                <h3>📊 Resultado do Teste da API CoinGecko</h3>
+            </div>
+            <div id="api-status"></div>
+            <div id="api-crypto-grid" class="api-results-grid"></div>
         </div>
         
         <div class="log">
@@ -288,13 +395,97 @@
         }
         
         function testApi() {
+            const apiResults = document.getElementById('api-results');
+            const apiStatus = document.getElementById('api-status');
+            const apiCryptoGrid = document.getElementById('api-crypto-grid');
+            
+            // Mostrar seção de resultados
+            apiResults.style.display = 'block';
+            apiCryptoGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Carregando...</div>';
+            apiStatus.innerHTML = '';
+            
             fetch('/api/realtime/test-api')
             .then(response => response.json())
             .then(data => {
                 addLog('Teste API CoinGecko: ' + JSON.stringify(data, null, 2));
+                
+                if (data.success) {
+                    apiStatus.innerHTML = `
+                        <div class="api-status-success">
+                            ✓ ${data.message} (${data.count} criptomoedas)
+                        </div>
+                    `;
+                    
+                    if (data.data && data.data.length > 0) {
+                        apiCryptoGrid.innerHTML = '';
+                        data.data.forEach(crypto => {
+                            const changeClass = crypto.change24h >= 0 ? 'positive' : 'negative';
+                            const changeSymbol = crypto.change24h >= 0 ? '+' : '';
+                            const formattedPrice = new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }).format(crypto.currentPrice);
+                            
+                            const formattedMarketCap = new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'USD',
+                                notation: 'compact',
+                                maximumFractionDigits: 2
+                            }).format(crypto.marketCap);
+                            
+                            const formattedVolume = new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'USD',
+                                notation: 'compact',
+                                maximumFractionDigits: 2
+                            }).format(crypto.volume24h);
+                            
+                            const cryptoCard = document.createElement('div');
+                            cryptoCard.className = 'api-crypto-card';
+                            cryptoCard.innerHTML = `
+                                <div class="api-crypto-header">
+                                    <div class="api-crypto-name">${crypto.name}</div>
+                                    <div class="api-crypto-symbol">${crypto.symbol}</div>
+                                </div>
+                                <div class="api-crypto-price">${formattedPrice}</div>
+                                <div class="api-crypto-change ${changeClass}">
+                                    ${changeSymbol}${crypto.change24h.toFixed(2)}%
+                                </div>
+                                <div class="api-crypto-details">
+                                    <div class="api-crypto-detail-item">
+                                        <span>Market Cap:</span>
+                                        <span style="font-weight: bold;">${formattedMarketCap}</span>
+                                    </div>
+                                    <div class="api-crypto-detail-item">
+                                        <span>Volume 24h:</span>
+                                        <span style="font-weight: bold;">${formattedVolume}</span>
+                                    </div>
+                                </div>
+                            `;
+                            apiCryptoGrid.appendChild(cryptoCard);
+                        });
+                    } else {
+                        apiCryptoGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Nenhuma criptomoeda encontrada</div>';
+                    }
+                } else {
+                    apiStatus.innerHTML = `
+                        <div class="api-status-error">
+                            ✗ ${data.message || 'Erro ao testar API'}
+                        </div>
+                    `;
+                    apiCryptoGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro ao carregar dados</div>';
+                }
             })
             .catch(error => {
                 addLog('Erro ao testar API: ' + error);
+                apiStatus.innerHTML = `
+                    <div class="api-status-error">
+                        ✗ Erro ao testar API: ${error.message}
+                    </div>
+                `;
+                apiCryptoGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro na conexão</div>';
             });
         }
         

@@ -117,6 +117,123 @@
             padding: 20px;
             opacity: 0.7;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 2% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .close:hover {
+            opacity: 1;
+        }
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .crypto-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .crypto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .crypto-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .crypto-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+        }
+        .crypto-symbol {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .crypto-price {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            margin: 10px 0;
+        }
+        .crypto-change {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .crypto-change.positive {
+            background: rgba(0, 184, 148, 0.3);
+            color: #00b894;
+        }
+        .crypto-change.negative {
+            background: rgba(225, 112, 85, 0.3);
+            color: #e17055;
+        }
+        .crypto-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .crypto-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .modal-status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
@@ -181,16 +298,124 @@
         </div>
     </div>
 
+    <!-- Modal para exibir resultado do teste da API -->
+    <div id="apiModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2>📊 Resultado do Teste da API CoinGecko</h2>
+            </div>
+            <div id="modalStatus" class="modal-status"></div>
+            <div id="cryptoResults" class="crypto-grid"></div>
+        </div>
+    </div>
+
     <script>
         function testApi() {
+            const modal = document.getElementById('apiModal');
+            const cryptoResults = document.getElementById('cryptoResults');
+            const modalStatus = document.getElementById('modalStatus');
+            
+            // Mostrar modal e limpar conteúdo anterior
+            modal.style.display = 'block';
+            cryptoResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Carregando...</div>';
+            modalStatus.innerHTML = '';
+            
             fetch('/api/realtime/test-api')
                 .then(response => response.json())
                 .then(data => {
-                    alert('Teste da API: ' + JSON.stringify(data, null, 2));
+                    if (data.success) {
+                        modalStatus.innerHTML = `
+                            <div style="color: #00b894; font-weight: bold; font-size: 1.1em;">
+                                ✓ ${data.message}
+                            </div>
+                            <div style="margin-top: 10px; opacity: 0.9;">
+                                Total de criptomoedas: <strong>${data.count}</strong>
+                            </div>
+                        `;
+                        
+                        if (data.data && data.data.length > 0) {
+                            cryptoResults.innerHTML = '';
+                            data.data.forEach(crypto => {
+                                const changeClass = crypto.change24h >= 0 ? 'positive' : 'negative';
+                                const changeSymbol = crypto.change24h >= 0 ? '+' : '';
+                                const formattedPrice = new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }).format(crypto.currentPrice);
+                                
+                                const formattedMarketCap = new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    notation: 'compact',
+                                    maximumFractionDigits: 2
+                                }).format(crypto.marketCap);
+                                
+                                const formattedVolume = new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    notation: 'compact',
+                                    maximumFractionDigits: 2
+                                }).format(crypto.volume24h);
+                                
+                                const cryptoCard = document.createElement('div');
+                                cryptoCard.className = 'crypto-card';
+                                cryptoCard.innerHTML = `
+                                    <div class="crypto-header">
+                                        <div class="crypto-name">${crypto.name}</div>
+                                        <div class="crypto-symbol">${crypto.symbol}</div>
+                                    </div>
+                                    <div class="crypto-price">${formattedPrice}</div>
+                                    <div class="crypto-change ${changeClass}">
+                                        ${changeSymbol}${crypto.change24h.toFixed(2)}%
+                                    </div>
+                                    <div class="crypto-details">
+                                        <div class="crypto-detail-item">
+                                            <span>Market Cap:</span>
+                                            <span style="font-weight: bold;">${formattedMarketCap}</span>
+                                        </div>
+                                        <div class="crypto-detail-item">
+                                            <span>Volume 24h:</span>
+                                            <span style="font-weight: bold;">${formattedVolume}</span>
+                                        </div>
+                                    </div>
+                                `;
+                                cryptoResults.appendChild(cryptoCard);
+                            });
+                        } else {
+                            cryptoResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Nenhuma criptomoeda encontrada</div>';
+                        }
+                    } else {
+                        modalStatus.innerHTML = `
+                            <div style="color: #e17055; font-weight: bold; font-size: 1.1em;">
+                                ✗ ${data.message || 'Erro ao testar API'}
+                            </div>
+                        `;
+                        cryptoResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro ao carregar dados</div>';
+                    }
                 })
                 .catch(error => {
-                    alert('Erro ao testar API: ' + error);
+                    modalStatus.innerHTML = `
+                        <div style="color: #e17055; font-weight: bold; font-size: 1.1em;">
+                            ✗ Erro ao testar API: ${error.message}
+                        </div>
+                    `;
+                    cryptoResults.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro na conexão</div>';
                 });
+        }
+        
+        function closeModal() {
+            document.getElementById('apiModal').style.display = 'none';
+        }
+        
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('apiModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
         }
 
         function testWebSocket() {
