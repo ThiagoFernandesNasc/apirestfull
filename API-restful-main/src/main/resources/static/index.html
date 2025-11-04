@@ -174,6 +174,19 @@
             align-items: center;
             margin-bottom: 15px;
         }
+        .crypto-image-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .crypto-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
         .crypto-name {
             font-size: 1.3em;
             font-weight: bold;
@@ -239,7 +252,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 CryptoGecko API</h1>
+            <h1> 🦎 CryptoGecko API</h1>
             <p>Sistema completo para gerenciamento de criptomoedas em tempo real</p>
             <div class="status">
                 <span class="status-indicator"></span>
@@ -362,9 +375,16 @@
                                 
                                 const cryptoCard = document.createElement('div');
                                 cryptoCard.className = 'crypto-card';
+                                
+                                // URL da imagem - usar imageUrl se disponível, senão usar fallback baseado no símbolo
+                                const imageUrl = crypto.imageUrl || `https://assets.coingecko.com/coins/images/${crypto.symbol.toLowerCase()}/large/${crypto.symbol.toLowerCase()}.png`;
+                                
                                 cryptoCard.innerHTML = `
                                     <div class="crypto-header">
-                                        <div class="crypto-name">${crypto.name}</div>
+                                        <div class="crypto-image-container">
+                                            <img src="${imageUrl}" alt="${crypto.name}" class="crypto-image" onerror="this.src='https://via.placeholder.com/40?text=${crypto.symbol.substring(0,2)}'; this.onerror=null;">
+                                            <div class="crypto-name">${crypto.name}</div>
+                                        </div>
                                         <div class="crypto-symbol">${crypto.symbol}</div>
                                     </div>
                                     <div class="crypto-price">${formattedPrice}</div>

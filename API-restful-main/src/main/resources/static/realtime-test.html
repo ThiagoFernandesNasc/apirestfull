@@ -137,6 +137,19 @@
             align-items: center;
             margin-bottom: 12px;
         }
+        .api-crypto-image-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .api-crypto-image {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
         .api-crypto-name {
             font-size: 1.1em;
             font-weight: bold;
@@ -444,9 +457,16 @@
                             
                             const cryptoCard = document.createElement('div');
                             cryptoCard.className = 'api-crypto-card';
+                            
+                            // URL da imagem - usar imageUrl se disponível
+                            const imageUrl = crypto.imageUrl || `https://assets.coingecko.com/coins/images/${crypto.symbol.toLowerCase()}/large/${crypto.symbol.toLowerCase()}.png`;
+                            
                             cryptoCard.innerHTML = `
                                 <div class="api-crypto-header">
-                                    <div class="api-crypto-name">${crypto.name}</div>
+                                    <div class="api-crypto-image-container">
+                                        <img src="${imageUrl}" alt="${crypto.name}" class="api-crypto-image" onerror="this.src='https://via.placeholder.com/35?text=${crypto.symbol.substring(0,2)}'; this.onerror=null;">
+                                        <div class="api-crypto-name">${crypto.name}</div>
+                                    </div>
                                     <div class="api-crypto-symbol">${crypto.symbol}</div>
                                 </div>
                                 <div class="api-crypto-price">${formattedPrice}</div>

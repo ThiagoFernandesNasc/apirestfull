@@ -74,4 +74,7 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.boot: WARN
+    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: ERROR
+    io.netty.util.internal.PlatformDependent0: OFF
+    sun.misc.Unsafe: OFF
 

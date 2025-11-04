@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class WebSocketService {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketService.class);
     private static final String WEBSOCKET_TOPIC = "/topic/crypto-updates";
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -32,7 +34,8 @@ public class WebSocketService {
             
             Map<String, Object> update = new HashMap<>();
             update.put("type", "crypto_update");
-            update.put("timestamp", LocalDateTime.now());
+            // Usar String ao invés de LocalDateTime para evitar problemas de serialização
+            update.put("timestamp", LocalDateTime.now().format(ISO_FORMATTER));
             update.put("data", crypto);
             
             String message = objectMapper.writeValueAsString(update);
@@ -51,7 +54,7 @@ public class WebSocketService {
         try {
             Map<String, Object> update = new HashMap<>();
             update.put("type", "market_update");
-            update.put("timestamp", LocalDateTime.now());
+            update.put("timestamp", LocalDateTime.now().format(ISO_FORMATTER));
             update.put("data", marketData);
             
             String message = objectMapper.writeValueAsString(update);
@@ -68,7 +71,7 @@ public class WebSocketService {
         try {
             Map<String, Object> update = new HashMap<>();
             update.put("type", "status_update");
-            update.put("timestamp", LocalDateTime.now());
+            update.put("timestamp", LocalDateTime.now().format(ISO_FORMATTER));
             update.put("status", status);
             update.put("message", message);
             
@@ -86,7 +89,7 @@ public class WebSocketService {
         try {
             Map<String, Object> update = new HashMap<>();
             update.put("type", "error");
-            update.put("timestamp", LocalDateTime.now());
+            update.put("timestamp", LocalDateTime.now().format(ISO_FORMATTER));
             update.put("error", errorMessage);
             
             String jsonMessage = objectMapper.writeValueAsString(update);

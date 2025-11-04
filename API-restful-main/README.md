@@ -241,13 +241,4 @@ Contribuições são bem-vindas! Para contribuir:
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📞 Suporte
-
-Para dúvidas ou suporte, entre em contato:
-- Email: contato@cryptogecko.com
-- GitHub Issues: [Criar uma issue](https://github.com/seu-usuario/crypto-gecko-api/issues)
-
----
-
-**Desenvolvido com ❤️ pela equipe CryptoGecko**
 

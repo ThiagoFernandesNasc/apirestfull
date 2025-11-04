@@ -44,6 +44,9 @@ public class Crypto {
     @Column(length = 500)
     private String description;
     
+    @Column(length = 500)
+    private String imageUrl;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -124,6 +127,14 @@ public class Crypto {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
     
     public LocalDateTime getCreatedAt() {
