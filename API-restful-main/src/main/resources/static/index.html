@@ -283,7 +283,7 @@
                 <h3>🔧 Endpoints da API</h3>
                 <p>Principais endpoints para integração:</p>
                 <ul style="text-align: left; list-style: none; padding: 0;">
-                    <li>• <code>GET /api/crypto</code> - Listar criptomoedas</li>
+                    <li>• <code>GET /api/cryptos</code> - Listar criptomoedas</li>
                     <li>• <code>POST /api/realtime/start</code> - Iniciar atualizações</li>
                     <li>• <code>GET /api/realtime/status</code> - Status do sistema</li>
                 </ul>
@@ -304,6 +304,24 @@
                 • Banco H2 integrado<br>
                 • Documentação automática</p>
             </div>
+
+            <div class="card">
+                <h3>💼 Portfólios</h3>
+                <p>Visualize os portfólios cadastrados e seus valores</p>
+                <button onclick="showPortfolios()" class="btn">Ver Portfólios</button>
+            </div>
+
+            <div class="card">
+                <h3>🧾 Transações</h3>
+                <p>Veja a lista de transações registradas</p>
+                <button onclick="showTransactions()" class="btn btn-secondary">Ver Transações</button>
+            </div>
+
+            <div class="card">
+                <h3>🛠️ Gerenciar Dados</h3>
+                <p>Criar, listar e excluir Criptos, Portfólios e Transações</p>
+                <button onclick="openManageModal()" class="btn">Abrir Gerenciador</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -320,6 +338,79 @@
             </div>
             <div id="modalStatus" class="modal-status"></div>
             <div id="cryptoResults" class="crypto-grid"></div>
+        </div>
+    </div>
+
+    <div id="portfoliosModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePortfoliosModal()">&times;</span>
+            <div class="modal-header">
+                <h2>💼 Portfólios</h2>
+            </div>
+            <div id="portfoliosStatus" class="modal-status"></div>
+            <div id="portfoliosResults" class="crypto-grid"></div>
+        </div>
+    </div>
+
+    <div id="transactionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTransactionsModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🧾 Transações</h2>
+            </div>
+            <div id="transactionsStatus" class="modal-status"></div>
+            <div id="transactionsResults" class="crypto-grid"></div>
+        </div>
+    </div>
+
+    <div id="manageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeManageModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🛠️ Gerenciar Dados</h2>
+            </div>
+            <div id="manageStatus" class="modal-status"></div>
+            <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:320px;" class="crypto-card">
+                    <div class="crypto-header">
+                        <div class="crypto-name">Portfólios</div>
+                        <button class="btn" onclick="reloadPortfoliosList()">Recarregar</button>
+                    </div>
+                    <form onsubmit="createPortfolio(event)">
+                        <div class="crypto-detail-item"><span>Nome</span><input id="p-name" required style="width:65%"></div>
+                        <div class="crypto-detail-item"><span>Descrição</span><input id="p-desc" required style="width:65%"></div>
+                        <div class="crypto-detail-item"><span>Valor Total</span><input id="p-total" type="number" step="0.01" style="width:65%" placeholder="opcional"></div>
+                        <div style="margin-top:10px; text-align:right;"><button class="btn" type="submit">Criar</button></div>
+                    </form>
+                    <div id="portfoliosList" style="margin-top:12px; max-height:260px; overflow:auto;"></div>
+                </div>
+
+                <div style="flex:1; min-width:320px;" class="crypto-card">
+                    <div class="crypto-header">
+                        <div class="crypto-name">Transações</div>
+                        <button class="btn" onclick="reloadTransactionsList()">Recarregar</button>
+                    </div>
+                    <form onsubmit="createTransaction(event)">
+                        <div class="crypto-detail-item"><span>Portfólio</span>
+                            <select id="t-portfolio" required style="width:65%"></select>
+                        </div>
+                        <div class="crypto-detail-item"><span>Cripto</span>
+                            <select id="t-crypto" required style="width:65%"></select>
+                        </div>
+                        <div class="crypto-detail-item"><span>Tipo</span>
+                            <select id="t-type" required style="width:65%">
+                                <option value="BUY">Compra</option>
+                                <option value="SELL">Venda</option>
+                            </select>
+                        </div>
+                        <div class="crypto-detail-item"><span>Quantidade</span><input id="t-qty" type="number" step="0.00000001" required style="width:65%"></div>
+                        <div class="crypto-detail-item"><span>Preço/Unid</span><input id="t-price" type="number" step="0.00000001" required style="width:65%"></div>
+                        <div class="crypto-detail-item"><span>Notas</span><input id="t-notes" style="width:65%" placeholder="opcional"></div>
+                        <div style="margin-top:10px; text-align:right;"><button class="btn" type="submit">Criar</button></div>
+                    </form>
+                    <div id="transactionsList" style="margin-top:12px; max-height:260px; overflow:auto;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -452,6 +543,276 @@
             .catch(error => {
                 alert('Erro ao testar WebSocket: ' + error);
             });
+        }
+
+        function showPortfolios() {
+            const modal = document.getElementById('portfoliosModal');
+            const results = document.getElementById('portfoliosResults');
+            const status = document.getElementById('portfoliosStatus');
+            modal.style.display = 'block';
+            results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Carregando...</div>';
+            status.innerHTML = '';
+
+            fetch('/api/portfolios')
+                .then(async r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (!r.ok) {
+                        const txt = await r.text();
+                        throw new Error(`HTTP ${r.status} - ${txt.substring(0, 300)}`);
+                    }
+                    if (!ct.includes('application/json')) {
+                        const txt = await r.text();
+                        throw new Error(`Resposta não JSON: ${txt.substring(0, 300)}`);
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    status.innerHTML = 'Total de portfólios: <strong>' + data.length + '</strong>';
+                    if (!data || data.length === 0) {
+                        results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Nenhum portfólio encontrado</div>';
+                        return;
+                    }
+                    results.innerHTML = '';
+                    data.forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'crypto-card';
+                        const totalValue = p.totalValue ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'USD'}).format(p.totalValue) : '-';
+                        const createdAt = p.createdAt ? new Date(p.createdAt).toLocaleString('pt-BR') : '-';
+                        card.innerHTML = `
+                            <div class="crypto-header">
+                                <div class="crypto-name">${p.name}</div>
+                                <div class="crypto-symbol">ID ${p.id}</div>
+                            </div>
+                            <div class="crypto-details">
+                                <div class="crypto-detail-item"><span>Valor Total:</span><span style="font-weight:bold;">${totalValue}</span></div>
+                                <div class="crypto-detail-item"><span>Criado em:</span><span>${createdAt}</span></div>
+                                <div class="crypto-detail-item"><span>Descrição:</span><span>${p.description || '-'}</span></div>
+                            </div>
+                        `;
+                        results.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    status.innerHTML = 'Erro ao carregar portfólios: ' + err.message;
+                    results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro na conexão</div>';
+                });
+        }
+
+        function closePortfoliosModal() {
+            document.getElementById('portfoliosModal').style.display = 'none';
+        }
+
+        function showTransactions() {
+            const modal = document.getElementById('transactionsModal');
+            const results = document.getElementById('transactionsResults');
+            const status = document.getElementById('transactionsStatus');
+            modal.style.display = 'block';
+            results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Carregando...</div>';
+            status.innerHTML = '';
+
+            fetch('/api/transactions')
+                .then(async r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (!r.ok) {
+                        const txt = await r.text();
+                        throw new Error(`HTTP ${r.status} - ${txt.substring(0, 300)}`);
+                    }
+                    if (!ct.includes('application/json')) {
+                        const txt = await r.text();
+                        throw new Error(`Resposta não JSON: ${txt.substring(0, 300)}`);
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    status.innerHTML = 'Total de transações: <strong>' + data.length + '</strong>';
+                    if (!data || data.length === 0) {
+                        results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Nenhuma transação encontrada</div>';
+                        return;
+                    }
+                    results.innerHTML = '';
+                    data.forEach(t => {
+                        const card = document.createElement('div');
+                        card.className = 'crypto-card';
+                        const quantity = t.quantity != null ? t.quantity : 0;
+                        const price = t.pricePerUnit != null ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'USD'}).format(t.pricePerUnit) : '-';
+                        const date = t.transactionDate ? new Date(t.transactionDate).toLocaleString('pt-BR') : '-';
+                        const type = t.type || (t.transactionType || '');
+                        const portfolioName = t.portfolio && t.portfolio.name ? t.portfolio.name : (t.portfolioId ? ('#' + t.portfolioId) : '-');
+                        const cryptoSymbol = t.crypto && t.crypto.symbol ? t.crypto.symbol : (t.cryptoSymbol || '-');
+                        card.innerHTML = `
+                            <div class="crypto-header">
+                                <div class="crypto-name">${(type || 'Transação').toString()}</div>
+                                <div class="crypto-symbol">ID ${t.id}</div>
+                            </div>
+                            <div class="crypto-details">
+                                <div class="crypto-detail-item"><span>Portfólio:</span><span>${portfolioName}</span></div>
+                                <div class="crypto-detail-item"><span>Cripto:</span><span>${cryptoSymbol}</span></div>
+                                <div class="crypto-detail-item"><span>Quantidade:</span><span>${quantity}</span></div>
+                                <div class="crypto-detail-item"><span>Preço:</span><span style="font-weight:bold;">${price}</span></div>
+                                <div class="crypto-detail-item"><span>Data:</span><span>${date}</span></div>
+                            </div>
+                        `;
+                        results.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    status.innerHTML = 'Erro ao carregar transações: ' + err.message;
+                    results.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Erro na conexão</div>';
+                });
+        }
+
+        function closeTransactionsModal() {
+            document.getElementById('transactionsModal').style.display = 'none';
+        }
+
+        function openManageModal() {
+            const modal = document.getElementById('manageModal');
+            const status = document.getElementById('manageStatus');
+            status.innerHTML = '';
+            modal.style.display = 'block';
+            Promise.all([reloadPortfoliosList(), reloadTransactionsList(), loadCryptoOptions()]).catch(()=>{});
+        }
+
+        function closeManageModal() {
+            document.getElementById('manageModal').style.display = 'none';
+        }
+
+        async function safeJsonFetch(url, options) {
+            const r = await fetch(url, options);
+            const ct = r.headers.get('content-type') || '';
+            if (!r.ok) {
+                const txt = await r.text();
+                throw new Error(`HTTP ${r.status} - ${txt.substring(0, 300)}`);
+            }
+            if (!ct.includes('application/json')) {
+                const txt = await r.text();
+                throw new Error(`Resposta não JSON: ${txt.substring(0, 300)}`);
+            }
+            return r.json();
+        }
+
+        
+
+        async function reloadPortfoliosList() {
+            const list = document.getElementById('portfoliosList');
+            list.innerHTML = '<div>Carregando...</div>';
+            try {
+                const data = await safeJsonFetch('/api/portfolios');
+                list.innerHTML = '';
+                data.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'crypto-detail-item';
+                    row.innerHTML = `<span>${p.name}</span>
+                        <span>
+                            <button class="btn btn-secondary" onclick="deletePortfolio(${p.id})">Excluir</button>
+                        </span>`;
+                    list.appendChild(row);
+                });
+                if (data.length === 0) list.innerHTML = '<div>Nenhum portfólio</div>';
+                await loadPortfolioOptions();
+            } catch(e) {
+                list.innerHTML = 'Erro: ' + e.message;
+            }
+        }
+
+        async function createPortfolio(ev) {
+            ev.preventDefault();
+            const total = document.getElementById('p-total').value;
+            const body = {
+                name: document.getElementById('p-name').value.trim(),
+                description: document.getElementById('p-desc').value.trim(),
+                totalValue: total ? parseFloat(total) : null
+            };
+            try {
+                await safeJsonFetch('/api/portfolios', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+                ev.target.reset();
+                await reloadPortfoliosList();
+            } catch(e) { alert('Erro ao criar portfólio: ' + e.message); }
+        }
+
+        async function deletePortfolio(id) {
+            if (!confirm('Excluir portfólio #' + id + '?')) return;
+            try {
+                const r = await fetch('/api/portfolios/' + id, { method:'DELETE' });
+                if (!r.ok && r.status !== 204) throw new Error('HTTP ' + r.status);
+                await reloadPortfoliosList();
+                await reloadTransactionsList();
+            } catch(e) { alert('Erro ao excluir: ' + e.message); }
+        }
+
+        async function loadPortfolioOptions() {
+            const sel = document.getElementById('t-portfolio');
+            const data = await safeJsonFetch('/api/portfolios');
+            sel.innerHTML = '';
+            data.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function loadCryptoOptions() {
+            const sel = document.getElementById('t-crypto');
+            const data = await safeJsonFetch('/api/cryptos');
+            sel.innerHTML = '';
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.name} (${c.symbol})`;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function reloadTransactionsList() {
+            const list = document.getElementById('transactionsList');
+            list.innerHTML = '<div>Carregando...</div>';
+            try {
+                const data = await safeJsonFetch('/api/transactions');
+                list.innerHTML = '';
+                data.forEach(t => {
+                    const row = document.createElement('div');
+                    row.className = 'crypto-detail-item';
+                    const sym = t.crypto && t.crypto.symbol ? t.crypto.symbol : '-';
+                    const pname = t.portfolio && t.portfolio.name ? t.portfolio.name : '-';
+                    row.innerHTML = `<span>${t.type} ${sym} @ ${t.pricePerUnit}</span>
+                        <span>
+                            <button class="btn btn-secondary" onclick="deleteTransaction(${t.id})">Excluir</button>
+                        </span>`;
+                    list.appendChild(row);
+                });
+                if (data.length === 0) list.innerHTML = '<div>Nenhuma transação</div>';
+            } catch(e) {
+                list.innerHTML = 'Erro: ' + e.message;
+            }
+        }
+
+        async function createTransaction(ev) {
+            ev.preventDefault();
+            const body = {
+                portfolio: { id: parseInt(document.getElementById('t-portfolio').value) },
+                crypto: { id: parseInt(document.getElementById('t-crypto').value) },
+                type: document.getElementById('t-type').value,
+                quantity: parseFloat(document.getElementById('t-qty').value),
+                pricePerUnit: parseFloat(document.getElementById('t-price').value),
+                notes: document.getElementById('t-notes').value.trim()
+            };
+            try {
+                await safeJsonFetch('/api/transactions', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+                ev.target.reset();
+                await reloadTransactionsList();
+                await reloadPortfoliosList();
+            } catch(e) { alert('Erro ao criar transação: ' + e.message); }
+        }
+
+        async function deleteTransaction(id) {
+            if (!confirm('Excluir transação #' + id + '?')) return;
+            try {
+                const r = await fetch('/api/transactions/' + id, { method:'DELETE' });
+                if (!r.ok && r.status !== 204) throw new Error('HTTP ' + r.status);
+                await reloadTransactionsList();
+                await reloadPortfoliosList();
+            } catch(e) { alert('Erro ao excluir: ' + e.message); }
         }
     </script>
 </body>

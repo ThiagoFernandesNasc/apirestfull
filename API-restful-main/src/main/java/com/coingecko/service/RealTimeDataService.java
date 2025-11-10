@@ -87,7 +87,13 @@ public class RealTimeDataService {
                             logger.error("WebSocketService não está disponível");
                         }
                     } else {
-                        logger.debug("Criptomoeda {} não encontrada no banco local", apiCrypto.getSymbol());
+                        Crypto created = cryptoRepository.save(apiCrypto);
+                        if (webSocketService != null) {
+                            webSocketService.sendCryptoUpdate(created);
+                            updatedCount++;
+                        } else {
+                            logger.error("WebSocketService não está disponível");
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("Erro ao processar criptomoeda {}: {}", apiCrypto.getSymbol(), e.getMessage());
@@ -138,6 +144,8 @@ public class RealTimeDataService {
                     crypto.setVolume24h(apiCrypto.getVolume24h());
                     crypto.setChange24h(apiCrypto.getChange24h());
                     cryptoRepository.save(crypto);
+                } else {
+                    cryptoRepository.save(apiCrypto);
                 }
             }
             

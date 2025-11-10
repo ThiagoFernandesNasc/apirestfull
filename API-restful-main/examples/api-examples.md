@@ -2,7 +2,7 @@
 
 Este arquivo contém exemplos práticos de como usar a CryptoGecko API.
 
-## 🚀 Iniciando a Aplicação
+## Iniciando a Aplicação
 
 ```bash
 # Compilar o projeto
@@ -14,7 +14,7 @@ mvn spring-boot:run
 
 A aplicação estará disponível em: http://localhost:8080
 
-## 📊 Acessando a Documentação
+##  Acessando a Documentação
 
 - **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **H2 Console**: http://localhost:8080/h2-console
@@ -22,7 +22,7 @@ A aplicação estará disponível em: http://localhost:8080
   - Username: `sa`
   - Password: `password`
 
-## 💰 Exemplos de Criptomoedas
+##  Exemplos de Criptomoedas
 
 ### Listar todas as criptomoedas
 ```bash
@@ -64,7 +64,7 @@ curl -X POST http://localhost:8080/api/cryptos \
   }'
 ```
 
-## 📁 Exemplos de Portfólios
+##  Exemplos de Portfólios
 
 ### Listar todos os portfólios
 ```bash
@@ -96,7 +96,7 @@ curl -X PUT http://localhost:8080/api/portfolios/1 \
   }'
 ```
 
-## 💸 Exemplos de Transações
+##  Exemplos de Transações
 
 ### Listar todas as transações
 ```bash
@@ -151,7 +151,7 @@ curl -X POST http://localhost:8080/api/transactions \
   }'
 ```
 
-## 📈 Exemplos de Análises
+##  Exemplos de Análises
 
 ### Obter total investido em um portfólio
 ```bash
@@ -178,7 +178,7 @@ curl -X GET http://localhost:8080/api/transactions/crypto/1/total-sold
 curl -X PUT http://localhost:8080/api/portfolios/1/update-value
 ```
 
-## 🔍 Exemplos de Buscas Avançadas
+##  Exemplos de Buscas Avançadas
 
 ### Buscar criptomoedas com variação positiva
 ```bash
@@ -195,7 +195,7 @@ curl -X GET "http://localhost:8080/api/portfolios/value-range?minValue=1000&maxV
 curl -X GET "http://localhost:8080/api/transactions/portfolio/1/date-range?startDate=2024-01-01T00:00:00&endDate=2024-01-31T23:59:59"
 ```
 
-## 🧪 Testando Validações
+##  Testando Validações
 
 ### Tentar criar criptomoeda com dados inválidos
 ```bash
@@ -221,7 +221,7 @@ curl -X POST http://localhost:8080/api/transactions \
   }'
 ```
 
-## 📊 Dados de Exemplo Pré-carregados
+##  Dados de Exemplo Pré-carregados
 
 A aplicação já vem com dados de exemplo:
 
@@ -243,14 +243,14 @@ A aplicação já vem com dados de exemplo:
 - Compra de Cardano no portfólio agressivo
 - Venda de Bitcoin no portfólio agressivo
 
-## 🎯 Próximos Passos
+##  Próximos Passos
 
 1. **Explore a documentação Swagger**: http://localhost:8080/swagger-ui.html
 2. **Teste os endpoints**: Use os exemplos acima
 3. **Verifique o banco H2**: http://localhost:8080/h2-console
 4. **Experimente com seus próprios dados**: Crie suas próprias criptomoedas, portfólios e transações
 
-## 🚨 Dicas Importantes
+##  Dicas Importantes
 
 - Todos os valores monetários devem ser positivos
 - As datas devem estar no formato ISO 8601

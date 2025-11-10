@@ -1,3 +1,5 @@
+Alunos: Thiago Fernandes, Severino David e Guilherme D'Lucca
+
 # CryptoGecko API
 
 Uma API RESTful para gerenciamento de criptomoedas inspirada no CoinGecko, desenvolvida em Java com Spring Boot.

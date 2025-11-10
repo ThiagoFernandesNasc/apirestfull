@@ -1,5 +1,7 @@
 package com.coingecko.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
@@ -8,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "portfolios")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Portfolio {
     
     @Id
@@ -35,6 +38,7 @@ public class Portfolio {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Transaction> transactions;
     
     // Construtores

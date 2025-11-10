@@ -1,5 +1,6 @@
 package com.coingecko.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cryptos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Crypto {
     
     @Id

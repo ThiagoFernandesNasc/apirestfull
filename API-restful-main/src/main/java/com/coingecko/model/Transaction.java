@@ -1,5 +1,6 @@
 package com.coingecko.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Transaction {
     
     @Id
@@ -16,6 +18,7 @@ public class Transaction {
     @NotNull(message = "Portfólio é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @JsonIgnoreProperties({"transactions", "hibernateLazyInitializer", "handler"})
     private Portfolio portfolio;
     
     @NotNull(message = "Criptomoeda é obrigatória")

@@ -85,16 +85,28 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
             .orElseThrow(() -> new RuntimeException("Portfólio não encontrado com id: " + portfolioId));
         
-        // Calcular valor total baseado nas transações
-        BigDecimal totalInvested = transactionRepository.getTotalInvested(portfolioId);
-        BigDecimal totalSold = transactionRepository.getTotalSold(portfolioId);
+        List<com.coingecko.model.Transaction> transactions = transactionRepository.findByPortfolioId(portfolioId);
+        java.util.Map<com.coingecko.model.Crypto, BigDecimal> netQuantities = new java.util.HashMap<>();
         
-        if (totalInvested == null) totalInvested = BigDecimal.ZERO;
-        if (totalSold == null) totalSold = BigDecimal.ZERO;
+        for (com.coingecko.model.Transaction t : transactions) {
+            com.coingecko.model.Crypto crypto = t.getCrypto();
+            BigDecimal qty = netQuantities.getOrDefault(crypto, BigDecimal.ZERO);
+            if (t.getType() == com.coingecko.model.Transaction.TransactionType.BUY) {
+                qty = qty.add(t.getQuantity());
+            } else if (t.getType() == com.coingecko.model.Transaction.TransactionType.SELL) {
+                qty = qty.subtract(t.getQuantity());
+            }
+            netQuantities.put(crypto, qty);
+        }
         
-        // Para simplificar, vamos usar o valor investido menos o vendido
-        // Em um cenário real, seria necessário calcular o valor atual baseado nos preços atuais
-        BigDecimal currentValue = totalInvested.subtract(totalSold);
+        BigDecimal currentValue = BigDecimal.ZERO;
+        for (java.util.Map.Entry<com.coingecko.model.Crypto, BigDecimal> entry : netQuantities.entrySet()) {
+            BigDecimal qty = entry.getValue();
+            if (qty.signum() > 0) {
+                BigDecimal price = entry.getKey().getCurrentPrice() != null ? entry.getKey().getCurrentPrice() : BigDecimal.ZERO;
+                currentValue = currentValue.add(qty.multiply(price));
+            }
+        }
         
         portfolio.setTotalValue(currentValue);
         portfolioRepository.save(portfolio);
