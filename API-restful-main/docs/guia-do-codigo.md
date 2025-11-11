@@ -1,6 +1,6 @@
-# Guia do Código – CryptoGecko API (Explicado como um professor)
+# Guia do Código – CryptoGecko API 
 
-Este guia explica cada parte do projeto, do ponto de vista de um professor de programação, para que você entenda a arquitetura, as responsabilidades de cada classe e como as peças se conectam.
+Este guia explica cada parte do projeto, para que você entenda a arquitetura, as responsabilidades de cada classe e como as peças se conectam.
 
 ---
 
@@ -421,4 +421,3 @@ Se quiser, posso personalizar este guia destacando os pontos mais relevantes par
 - **Controller** expõe endpoints fazendo a ponte HTTP ⇄ Serviço.
 - **Exception** garante respostas de erro consistentes.
 
-Se desejar, posso incluir diagramas de sequência ou exemplos de requests/responses por endpoint para reforçar o entendimento.
