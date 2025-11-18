@@ -1,4 +1,4 @@
 Alunos 
-Thiago Fernandes
-Severino David
+Thiago Fernandes;
+Severino David;
 Guilherme D'Lucca
